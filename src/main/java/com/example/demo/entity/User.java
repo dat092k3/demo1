@@ -47,6 +47,14 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<UserFavoriteBook> favoriteBooks;
 
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private List<Role> roles;
+
     public User() {
         this.registeredDate = LocalDateTime.now();
         this.membershipStatus = "ACTIVE";
@@ -124,6 +132,14 @@ public class User {
 
     public void setFavoriteBooks(List<UserFavoriteBook> favoriteBooks) {
         this.favoriteBooks = favoriteBooks;
+    }
+
+    public List<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<Role> roles) {
+        this.roles = roles;
     }
 
     @Override
