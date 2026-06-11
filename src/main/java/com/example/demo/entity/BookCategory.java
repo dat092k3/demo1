@@ -1,7 +1,6 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import java.io.Serializable;
 
 @Entity
 @Table(name = "book_categories")

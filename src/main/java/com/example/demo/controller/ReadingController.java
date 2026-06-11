@@ -19,9 +19,10 @@ public class ReadingController {
     @Autowired
     private ReadingService readingService;
 
-    // TODO: In a real app, userId should be extracted from the authenticated user (e.g., via SecurityContextHolder)
+    // TODO: In a real app, userId should be extracted from the authenticated user
+    // (e.g., via SecurityContextHolder)
     // For this demonstration, we accept userId as a request parameter.
-    
+
     // --- Favorite Books ---
 
     @PostMapping("/favorites/{bookId}")
@@ -44,7 +45,8 @@ public class ReadingController {
     // --- Reading Progress ---
 
     @PostMapping("/progress")
-    public ResponseEntity<Void> saveReadingProgress(@RequestParam Long userId, @Valid @RequestBody ReadingProgressRequestDTO request) {
+    public ResponseEntity<Void> saveReadingProgress(@RequestParam Long userId,
+            @Valid @RequestBody ReadingProgressRequestDTO request) {
         readingService.saveReadingProgress(userId, request);
         return ResponseEntity.ok().build();
     }
