@@ -68,10 +68,10 @@ public class DataInitializer {
 
             // 6. Create Chapters
             Chapter ch1_book1 = new Chapter("The Boy Who Lived", 1, "Mr. and Mrs. Dursley, of number four, Privet Drive...", book1);
-            Chapter ch2_book1 = new Chapter("The Vanishing Glass", 18, "Nearly ten years had passed since the Dursleys...", book1);
+            Chapter ch2_book1 = new Chapter("The Vanishing Glass", 2, "Nearly ten years had passed since the Dursleys...", book1);
 
             Chapter ch1_book2 = new Chapter("Our Picture of the Universe", 1, "A well-known scientist (some say it was Bertrand Russell)...", book2);
-            Chapter ch2_book2 = new Chapter("Space and Time", 15, "Our present ideas about the motion of bodies...", book2);
+            Chapter ch2_book2 = new Chapter("Space and Time", 2, "Our present ideas about the motion of bodies...", book2);
 
             Chapter ch1_book3 = new Chapter("Clean Code", 1, "There will be code. One might argue that a book...", book3);
 
