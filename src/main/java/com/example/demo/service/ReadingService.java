@@ -1,0 +1,143 @@
+package com.example.demo.service;
+
+import com.example.demo.dto.BookDTO;
+import com.example.demo.dto.ChapterDTO;
+import com.example.demo.dto.ReadingProgressDTO;
+import com.example.demo.dto.ReadingProgressRequestDTO;
+import com.example.demo.entity.*;
+import com.example.demo.repository.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Service
+public class ReadingService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private BookRepository bookRepository;
+
+    @Autowired
+    private ChapterRepository chapterRepository;
+
+    @Autowired
+    private UserFavoriteBookRepository userFavoriteBookRepository;
+
+    @Autowired
+    private UserReadingProgressRepository userReadingProgressRepository;
+
+    // --- Favorite Books ---
+
+    public void addFavoriteBook(Long userId, Long bookId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+
+        Optional<UserFavoriteBook> existing = userFavoriteBookRepository.findByUserIdAndBookId(userId, bookId);
+        if (existing.isEmpty()) {
+            UserFavoriteBook favorite = new UserFavoriteBook(user, book);
+            userFavoriteBookRepository.save(favorite);
+        }
+    }
+
+    public void removeFavoriteBook(Long userId, Long bookId) {
+        Optional<UserFavoriteBook> existing = userFavoriteBookRepository.findByUserIdAndBookId(userId, bookId);
+        existing.ifPresent(userFavoriteBookRepository::delete);
+    }
+
+    public List<BookDTO> getFavoriteBooks(Long userId) {
+        List<UserFavoriteBook> favorites = userFavoriteBookRepository.findByUserId(userId);
+        return favorites.stream()
+                .map(UserFavoriteBook::getBook)
+                .map(this::mapToBookDTO)
+                .collect(Collectors.toList());
+    }
+
+    // --- Reading Progress ---
+
+    public void saveReadingProgress(Long userId, ReadingProgressRequestDTO request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Book book = bookRepository.findById(request.getBookId())
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+        Chapter chapter = chapterRepository.findById(request.getChapterId())
+                .orElseThrow(() -> new RuntimeException("Chapter not found"));
+
+        Optional<UserReadingProgress> existing = userReadingProgressRepository.findByUserIdAndBookId(userId, book.getId());
+        UserReadingProgress progress;
+        if (existing.isPresent()) {
+            progress = existing.get();
+            progress.setLastReadChapter(chapter);
+            progress.setLastReadDate(LocalDateTime.now());
+        } else {
+            progress = new UserReadingProgress(user, book, chapter);
+        }
+        userReadingProgressRepository.save(progress);
+    }
+
+    public ReadingProgressDTO getReadingProgress(Long userId, Long bookId) {
+        Optional<UserReadingProgress> progressOpt = userReadingProgressRepository.findByUserIdAndBookId(userId, bookId);
+        if (progressOpt.isPresent()) {
+            UserReadingProgress progress = progressOpt.get();
+            ReadingProgressDTO dto = new ReadingProgressDTO();
+            dto.setBookId(progress.getBook().getId());
+            dto.setBookTitle(progress.getBook().getTitle());
+            dto.setLastReadChapterId(progress.getLastReadChapter().getId());
+            dto.setLastReadChapterTitle(progress.getLastReadChapter().getTitle());
+            dto.setLastReadPageNumber(progress.getLastReadChapter().getPageNumber());
+            dto.setLastReadDate(progress.getLastReadDate());
+            return dto;
+        }
+        return null;
+    }
+
+    // --- Reading Books ---
+
+    public List<ChapterDTO> getBookChapters(Long bookId) {
+        List<Chapter> chapters = chapterRepository.findByBookIdOrderByPageNumberAsc(bookId);
+        return chapters.stream().map(chapter -> {
+            ChapterDTO dto = new ChapterDTO();
+            dto.setId(chapter.getId());
+            dto.setTitle(chapter.getTitle());
+            dto.setPageNumber(chapter.getPageNumber());
+            // Intentionally omit content for summary list
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    public ChapterDTO getChapterContent(Long chapterId) {
+        Chapter chapter = chapterRepository.findById(chapterId)
+                .orElseThrow(() -> new RuntimeException("Chapter not found"));
+        ChapterDTO dto = new ChapterDTO();
+        dto.setId(chapter.getId());
+        dto.setTitle(chapter.getTitle());
+        dto.setPageNumber(chapter.getPageNumber());
+        dto.setContent(chapter.getContent());
+        return dto;
+    }
+
+    private BookDTO mapToBookDTO(Book book) {
+        BookDTO dto = new BookDTO();
+        dto.setId(book.getId());
+        dto.setTitle(book.getTitle());
+        dto.setDescription(book.getDescription());
+        dto.setPublishedDate(book.getPublishedDate());
+        dto.setQuantity(book.getQuantity());
+        if (book.getAuthor() != null) {
+            dto.setAuthorId(book.getAuthor().getId());
+            dto.setAuthorName(book.getAuthor().getName());
+        }
+        if (book.getCategory() != null) {
+            dto.setCategoryId(book.getCategory().getId());
+            dto.setCategoryName(book.getCategory().getName());
+        }
+        return dto;
+    }
+}
