@@ -47,6 +47,13 @@ public class Book {
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<UserFavoriteBook> favoritedByUsers;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "uploaded_by")
+    private User uploadedBy;
+
+    @Column(name = "is_public", nullable = false)
+    private boolean isPublic = false;
+
     public Book() {
     }
 
@@ -133,6 +140,22 @@ public class Book {
 
     public void setFavoritedByUsers(List<UserFavoriteBook> favoritedByUsers) {
         this.favoritedByUsers = favoritedByUsers;
+    }
+
+    public User getUploadedBy() {
+        return uploadedBy;
+    }
+
+    public void setUploadedBy(User uploadedBy) {
+        this.uploadedBy = uploadedBy;
+    }
+
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
     }
 
     @Override

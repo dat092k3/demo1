@@ -2,6 +2,7 @@ package com.example.demo.dto;
 
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
+import org.springframework.lang.NonNull;
 
 public class BookRequestDTO {
     @NotBlank(message = "Book title cannot be blank")
@@ -22,6 +23,8 @@ public class BookRequestDTO {
 
     @NotNull(message = "Category ID cannot be null")
     private Long categoryId;
+
+    private Boolean isPublic;
 
     public String getTitle() {
         return title;
@@ -55,6 +58,7 @@ public class BookRequestDTO {
         this.quantity = quantity;
     }
 
+    @NonNull
     public Long getAuthorId() {
         return authorId;
     }
@@ -63,11 +67,20 @@ public class BookRequestDTO {
         this.authorId = authorId;
     }
 
+    @NonNull
     public Long getCategoryId() {
         return categoryId;
     }
 
     public void setCategoryId(Long categoryId) {
         this.categoryId = categoryId;
+    }
+
+    public Boolean getIsPublic() {
+        return isPublic;
+    }
+
+    public void setIsPublic(Boolean isPublic) {
+        this.isPublic = isPublic;
     }
 }

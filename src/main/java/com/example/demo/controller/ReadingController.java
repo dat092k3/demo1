@@ -25,33 +25,33 @@ public class ReadingController {
 
     // --- Favorite Books ---
 
-    @PostMapping("/favorites/{bookId}")
+    @PostMapping("/favorites/add/{bookId}")
     public ResponseEntity<Void> addFavoriteBook(@RequestParam Long userId, @PathVariable Long bookId) {
         readingService.addFavoriteBook(userId, bookId);
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/favorites/{bookId}")
+    @DeleteMapping("/favorites/remove/{bookId}")
     public ResponseEntity<Void> removeFavoriteBook(@RequestParam Long userId, @PathVariable Long bookId) {
         readingService.removeFavoriteBook(userId, bookId);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/favorites")
+    @GetMapping("/favorites/list")
     public ResponseEntity<List<BookDTO>> getFavoriteBooks(@RequestParam Long userId) {
         return ResponseEntity.ok(readingService.getFavoriteBooks(userId));
     }
 
     // --- Reading Progress ---
 
-    @PostMapping("/progress")
+    @PostMapping("/progress/save")
     public ResponseEntity<Void> saveReadingProgress(@RequestParam Long userId,
             @Valid @RequestBody ReadingProgressRequestDTO request) {
         readingService.saveReadingProgress(userId, request);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/progress/{bookId}")
+    @GetMapping("/progress/view/{bookId}")
     public ResponseEntity<ReadingProgressDTO> getReadingProgress(@RequestParam Long userId, @PathVariable Long bookId) {
         ReadingProgressDTO progress = readingService.getReadingProgress(userId, bookId);
         if (progress != null) {
@@ -62,12 +62,12 @@ public class ReadingController {
 
     // --- Reading Book (Chapters) ---
 
-    @GetMapping("/books/{bookId}/chapters")
+    @GetMapping("/book/{bookId}/chapter-list")
     public ResponseEntity<List<ChapterDTO>> getBookChapters(@PathVariable Long bookId) {
         return ResponseEntity.ok(readingService.getBookChapters(bookId));
     }
 
-    @GetMapping("/chapters/{chapterId}")
+    @GetMapping("/chapter/{chapterId}/content")
     public ResponseEntity<ChapterDTO> getChapterContent(@PathVariable Long chapterId) {
         return ResponseEntity.ok(readingService.getChapterContent(chapterId));
     }
