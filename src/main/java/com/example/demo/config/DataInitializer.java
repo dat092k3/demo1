@@ -28,8 +28,8 @@ public class DataInitializer {
             }
 
             // 1. Create Roles
-            Role roleUser = new Role("ROLE_USER");
-            Role roleAdmin = new Role("ROLE_ADMIN");
+            Role roleUser = new Role("USER");
+            Role roleAdmin = new Role("ADMIN");
             roleRepository.saveAll(List.of(roleUser, roleAdmin));
 
             // 2. Create Users

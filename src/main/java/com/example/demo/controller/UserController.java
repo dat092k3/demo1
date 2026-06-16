@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/user")
 public class UserController {
 
-    @GetMapping("/hello")
+    @GetMapping("/authenticate")
     public String hello() {
         return "Hello User";
     }

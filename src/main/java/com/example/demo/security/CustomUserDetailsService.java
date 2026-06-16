@@ -29,7 +29,7 @@ public class CustomUserDetailsService
                 user.getRoles()
                         .stream()
                         .map(role ->
-                                new SimpleGrantedAuthority(role.getName()))
+                                new SimpleGrantedAuthority("ROLE_" + role.getName()))
                         .toList();
         System.out.println(authorities);
 

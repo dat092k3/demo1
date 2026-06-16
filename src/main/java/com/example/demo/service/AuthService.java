@@ -26,12 +26,12 @@ public class AuthService {
 
     public void register(RegisterRequest request) {
 
-        if(userRepository.findByEmail(request.getEmail()).isPresent()) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Email already exists");
         }
 
         Role role = roleRepository
-                .findByName("ROLE_USER")
+                .findByName("USER")
                 .orElseThrow(() ->
                         new RuntimeException("ROLE_USER not found"));
 
@@ -39,9 +39,22 @@ public class AuthService {
 
         user.setName(request.getName());
         user.setEmail(request.getEmail());
-
-        // tạm thời chưa mã hóa
         user.setPassword(request.getPassword());
+
+        user.setPhone(request.getPhone());
+
+        // Nếu client không gửi thì mặc định ACTIVE
+        if (request.getMembershipStatus() == null
+                || request.getMembershipStatus().isBlank()) {
+
+            user.setMembershipStatus("ACTIVE");
+
+        } else {
+
+            user.setMembershipStatus(
+                    request.getMembershipStatus()
+            );
+        }
 
         user.setRoles(List.of(role));
 

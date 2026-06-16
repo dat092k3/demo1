@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/admin")
 public class AdminController {
 
-    @GetMapping("/hello")
+    @GetMapping("/authenticate")
     public String hello() {
         return "Hello Admin";
     }
