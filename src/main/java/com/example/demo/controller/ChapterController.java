@@ -23,20 +23,20 @@ public class ChapterController {
         return ResponseEntity.status(HttpStatus.CREATED).body(chapterService.createChapter(bookId, requestDTO));
     }
 
-    @PutMapping("/{chapterId}/update")
+    @PutMapping("/update/{chapterId}")
     public ResponseEntity<ChapterDTO> updateChapter(
             @PathVariable Long chapterId,
             @Valid @RequestBody ChapterRequestDTO requestDTO) {
         return ResponseEntity.ok(chapterService.updateChapter(chapterId, requestDTO));
     }
 
-    @DeleteMapping("/{chapterId}/delete")
+    @DeleteMapping("/delete/{chapterId}")
     public ResponseEntity<Void> deleteChapter(@PathVariable Long chapterId) {
         chapterService.deleteChapter(chapterId);
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{chapterId}/change-visibility")
+    @PatchMapping("/change-visibility/{chapterId}")
     public ResponseEntity<ChapterDTO> toggleChapterVisibility(
             @PathVariable Long chapterId,
             @RequestParam boolean isPublic) {
