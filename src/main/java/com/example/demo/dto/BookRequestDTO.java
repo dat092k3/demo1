@@ -14,10 +14,6 @@ public class BookRequestDTO {
     @PastOrPresent(message = "Published date cannot be in the future")
     private LocalDate publishedDate;
 
-    @Positive(message = "Quantity must be greater than 0")
-    @NotNull(message = "Quantity cannot be null")
-    private Integer quantity;
-
     @NotNull(message = "Author ID cannot be null")
     private Long authorId;
 
@@ -48,14 +44,6 @@ public class BookRequestDTO {
 
     public void setPublishedDate(LocalDate publishedDate) {
         this.publishedDate = publishedDate;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
     }
 
     @NonNull

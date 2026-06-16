@@ -172,7 +172,6 @@ public class ReadingService {
         dto.setTitle(book.getTitle());
         dto.setDescription(book.getDescription());
         dto.setPublishedDate(book.getPublishedDate());
-        dto.setQuantity(book.getQuantity());
         if (book.getAuthor() != null) {
             dto.setAuthorId(book.getAuthor().getId());
             dto.setAuthorName(book.getAuthor().getName());

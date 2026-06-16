@@ -7,7 +7,6 @@ public class BookDTO {
     private String title;
     private String description;
     private LocalDate publishedDate;
-    private Integer quantity;
     private Long authorId;
     private String authorName;
     private Long categoryId;
@@ -46,14 +45,6 @@ public class BookDTO {
 
     public void setPublishedDate(LocalDate publishedDate) {
         this.publishedDate = publishedDate;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
     }
 
     public Long getAuthorId() {

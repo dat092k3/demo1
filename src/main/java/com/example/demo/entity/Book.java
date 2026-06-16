@@ -26,10 +26,6 @@ public class Book {
     @Column(name = "published_date")
     private LocalDate publishedDate;
 
-    @Positive(message = "Quantity must be greater than 0")
-    @Column(name = "quantity", nullable = false)
-    private Integer quantity;
-
     @NotNull(message = "Author cannot be null")
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "author_id", nullable = false)
@@ -56,12 +52,10 @@ public class Book {
     public Book() {
     }
 
-    public Book(String title, String description, LocalDate publishedDate,
-            Integer quantity, Author author, Category category) {
+    public Book(String title, String description, LocalDate publishedDate, Author author, Category category) {
         this.title = title;
         this.description = description;
         this.publishedDate = publishedDate;
-        this.quantity = quantity;
         this.author = author;
         this.category = category;
     }
@@ -97,14 +91,6 @@ public class Book {
 
     public void setPublishedDate(LocalDate publishedDate) {
         this.publishedDate = publishedDate;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
     }
 
     public Author getAuthor() {

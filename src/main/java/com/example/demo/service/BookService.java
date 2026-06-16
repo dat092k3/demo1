@@ -73,7 +73,6 @@ public class BookService {
         book.setTitle(requestDTO.getTitle());
         book.setDescription(requestDTO.getDescription());
         book.setPublishedDate(requestDTO.getPublishedDate());
-        book.setQuantity(requestDTO.getQuantity());
         book.setAuthor(author);
         book.setCategory(category);
 
@@ -112,7 +111,6 @@ public class BookService {
         book.setTitle(requestDTO.getTitle());
         book.setDescription(requestDTO.getDescription());
         book.setPublishedDate(requestDTO.getPublishedDate());
-        book.setQuantity(requestDTO.getQuantity());
         book.setAuthor(author);
         book.setCategory(category);
 
@@ -168,7 +166,6 @@ public class BookService {
         dto.setTitle(book.getTitle());
         dto.setDescription(book.getDescription());
         dto.setPublishedDate(book.getPublishedDate());
-        dto.setQuantity(book.getQuantity());
         if (book.getAuthor() != null) {
             dto.setAuthorId(book.getAuthor().getId());
             dto.setAuthorName(book.getAuthor().getName());
