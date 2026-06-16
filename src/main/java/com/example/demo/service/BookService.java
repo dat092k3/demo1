@@ -5,13 +5,20 @@ import com.example.demo.dto.BookRequestDTO;
 import com.example.demo.entity.Author;
 import com.example.demo.entity.Book;
 import com.example.demo.entity.Category;
+import com.example.demo.entity.User;
 import com.example.demo.repository.AuthorRepository;
 import com.example.demo.repository.BookRepository;
 import com.example.demo.repository.CategoryRepository;
+import com.example.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.lang.NonNull;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,11 +33,29 @@ public class BookService {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     public List<BookDTO> getAllBooks() {
-        return bookRepository.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = false;
+        String currentUserEmail = null;
+        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+            isAdmin = auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+            currentUserEmail = auth.getName();
+        }
+
+        final boolean finalIsAdmin = isAdmin;
+        final String finalEmail = currentUserEmail;
+
+        return bookRepository.findAll().stream()
+                .filter(book -> finalIsAdmin || book.isPublic() ||
+                        (book.getUploadedBy() != null && book.getUploadedBy().getEmail().equals(finalEmail)))
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
-    public BookDTO getBookById(Long id) {
+    public BookDTO getBookById(@NonNull Long id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
         return mapToDTO(book);
@@ -50,13 +75,32 @@ public class BookService {
         book.setAuthor(author);
         book.setCategory(category);
 
+        if (requestDTO.getIsPublic() != null) {
+            book.setPublic(requestDTO.getIsPublic());
+        }
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+            User currentUser = userRepository.findByEmail(auth.getName())
+                    .orElseThrow(() -> new RuntimeException("Current user not found"));
+            book.setUploadedBy(currentUser);
+        }
+
         Book savedBook = bookRepository.save(book);
         return mapToDTO(savedBook);
     }
 
-    public BookDTO updateBook(Long id, BookRequestDTO requestDTO) {
+    public BookDTO updateBook(@NonNull Long id, BookRequestDTO requestDTO) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        String currentUserEmail = auth.getName();
+
+        if (!isAdmin && (book.getUploadedBy() == null || !book.getUploadedBy().getEmail().equals(currentUserEmail))) {
+            throw new RuntimeException("You do not have permission to modify this book");
+        }
 
         Author author = authorRepository.findById(requestDTO.getAuthorId())
                 .orElseThrow(() -> new RuntimeException("Author not found with id: " + requestDTO.getAuthorId()));
@@ -70,14 +114,44 @@ public class BookService {
         book.setAuthor(author);
         book.setCategory(category);
 
+        if (requestDTO.getIsPublic() != null) {
+            book.setPublic(requestDTO.getIsPublic());
+        }
+
         Book updatedBook = bookRepository.save(book);
         return mapToDTO(updatedBook);
     }
 
-    public void deleteBook(Long id) {
+    public BookDTO toggleBookVisibility(@NonNull Long id, boolean isPublic) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
-        bookRepository.delete(book);
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        String currentUserEmail = auth.getName();
+
+        if (!isAdmin && (book.getUploadedBy() == null || !book.getUploadedBy().getEmail().equals(currentUserEmail))) {
+            throw new RuntimeException("You do not have permission to modify this book's visibility");
+        }
+
+        book.setPublic(isPublic);
+        Book updatedBook = bookRepository.save(book);
+        return mapToDTO(updatedBook);
+    }
+
+    public void deleteBook(@NonNull Long id) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        String currentUserEmail = auth.getName();
+
+        if (!isAdmin && (book.getUploadedBy() == null || !book.getUploadedBy().getEmail().equals(currentUserEmail))) {
+            throw new RuntimeException("You do not have permission to delete this book");
+        }
+
+        bookRepository.delete(Objects.requireNonNull(book));
     }
 
     private BookDTO mapToDTO(Book book) {

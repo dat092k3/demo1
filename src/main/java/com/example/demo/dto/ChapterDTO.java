@@ -5,6 +5,7 @@ public class ChapterDTO {
     private String title;
     private Integer pageNumber;
     private String content;
+    private boolean isPublic;
 
     public Long getId() {
         return id;
@@ -36,5 +37,13 @@ public class ChapterDTO {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
     }
 }

@@ -13,6 +13,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Service
 public class ReadingService {
@@ -101,25 +104,58 @@ public class ReadingService {
     // --- Reading Books ---
 
     public List<ChapterDTO> getBookChapters(Long bookId) {
+        Book book = bookRepository.findById(bookId).orElseThrow(() -> new RuntimeException("Book not found"));
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = false;
+        String currentUserEmail = null;
+        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+            isAdmin = auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+            currentUserEmail = auth.getName();
+        }
+
+        final boolean finalIsAdmin = isAdmin;
+        final String finalEmail = currentUserEmail;
+
         List<Chapter> chapters = chapterRepository.findByBookIdOrderByPageNumberAsc(bookId);
-        return chapters.stream().map(chapter -> {
-            ChapterDTO dto = new ChapterDTO();
-            dto.setId(chapter.getId());
-            dto.setTitle(chapter.getTitle());
-            dto.setPageNumber(chapter.getPageNumber());
-            // Intentionally omit content for summary list
-            return dto;
-        }).collect(Collectors.toList());
+        return chapters.stream()
+                .filter(chapter -> finalIsAdmin || chapter.isPublic() ||
+                        (book.getUploadedBy() != null && book.getUploadedBy().getEmail().equals(finalEmail)))
+                .map(chapter -> {
+                    ChapterDTO dto = new ChapterDTO();
+                    dto.setId(chapter.getId());
+                    dto.setTitle(chapter.getTitle());
+                    dto.setPageNumber(chapter.getPageNumber());
+                    dto.setPublic(chapter.isPublic());
+                    // Intentionally omit content for summary list
+                    return dto;
+                }).collect(Collectors.toList());
     }
 
     public ChapterDTO getChapterContent(Long chapterId) {
         Chapter chapter = chapterRepository.findById(chapterId)
                 .orElseThrow(() -> new RuntimeException("Chapter not found"));
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = false;
+        String currentUserEmail = null;
+        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+            isAdmin = auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+            currentUserEmail = auth.getName();
+        }
+
+        Book book = chapter.getBook();
+        if (!isAdmin && !chapter.isPublic() && 
+            (book.getUploadedBy() == null || !book.getUploadedBy().getEmail().equals(currentUserEmail))) {
+            throw new RuntimeException("You do not have permission to view this chapter");
+        }
+
         ChapterDTO dto = new ChapterDTO();
         dto.setId(chapter.getId());
         dto.setTitle(chapter.getTitle());
         dto.setPageNumber(chapter.getPageNumber());
         dto.setContent(chapter.getContent());
+        dto.setPublic(chapter.isPublic());
         return dto;
     }
 

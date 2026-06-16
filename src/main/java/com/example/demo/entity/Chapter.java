@@ -30,6 +30,9 @@ public class Chapter {
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
+    @Column(name = "is_public", nullable = false)
+    private boolean isPublic = false;
+
     public Chapter() {
     }
 
@@ -79,6 +82,14 @@ public class Chapter {
 
     public void setBook(Book book) {
         this.book = book;
+    }
+
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
     }
 
     @Override

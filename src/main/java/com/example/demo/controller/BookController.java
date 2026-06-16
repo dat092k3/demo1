@@ -18,29 +18,36 @@ public class BookController {
     @Autowired
     private BookService bookService;
 
-    @GetMapping
+    @GetMapping("/list")
     public ResponseEntity<List<BookDTO>> getAllBooks() {
         return ResponseEntity.ok(bookService.getAllBooks());
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/detail")
     public ResponseEntity<BookDTO> getBookById(@PathVariable Long id) {
         return ResponseEntity.ok(bookService.getBookById(id));
     }
 
-    @PostMapping
+    @PostMapping("/upload")
     public ResponseEntity<BookDTO> createBook(@Valid @RequestBody BookRequestDTO requestDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(bookService.createBook(requestDTO));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id}/update")
     public ResponseEntity<BookDTO> updateBook(@PathVariable Long id, @Valid @RequestBody BookRequestDTO requestDTO) {
         return ResponseEntity.ok(bookService.updateBook(id, requestDTO));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}/delete")
     public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
         bookService.deleteBook(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/change-visibility")
+    public ResponseEntity<BookDTO> toggleBookVisibility(
+            @PathVariable Long id,
+            @RequestParam boolean isPublic) {
+        return ResponseEntity.ok(bookService.toggleBookVisibility(id, isPublic));
     }
 }
