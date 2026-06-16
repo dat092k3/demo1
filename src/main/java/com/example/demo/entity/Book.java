@@ -15,8 +15,7 @@ public class Book {
 
     @NotBlank(message = "Book title cannot be blank")
     @Size(min = 1, max = 200, message = "Book title must be between 1 and 200 characters")
-    @Pattern(regexp = "^[\\p{L}\\s'-:.,&()]+$",
-            message = "Book title can only contain letters, numbers, spaces, and common punctuation marks")
+    @Pattern(regexp = "^[\\p{L}\\s'-:.,&()]+$", message = "Book title can only contain letters, numbers, spaces, and common punctuation marks")
     @Column(name = "title", nullable = false, length = 200)
     private String title;
 
@@ -57,8 +56,8 @@ public class Book {
     public Book() {
     }
 
-    public Book(String title, String description, LocalDate publishedDate, 
-                Integer quantity, Author author, Category category) {
+    public Book(String title, String description, LocalDate publishedDate,
+            Integer quantity, Author author, Category category) {
         this.title = title;
         this.description = description;
         this.publishedDate = publishedDate;
@@ -91,8 +90,6 @@ public class Book {
     public void setDescription(String description) {
         this.description = description;
     }
-
-
 
     public LocalDate getPublishedDate() {
         return publishedDate;

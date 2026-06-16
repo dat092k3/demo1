@@ -65,26 +65,6 @@ public class ReadingService {
 
     // --- Reading Progress ---
 
-    public void saveReadingProgress(Long userId, ReadingProgressRequestDTO request) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        Book book = bookRepository.findById(request.getBookId())
-                .orElseThrow(() -> new RuntimeException("Book not found"));
-        Chapter chapter = chapterRepository.findById(request.getChapterId())
-                .orElseThrow(() -> new RuntimeException("Chapter not found"));
-
-        Optional<UserReadingProgress> existing = userReadingProgressRepository.findByUserIdAndBookId(userId, book.getId());
-        UserReadingProgress progress;
-        if (existing.isPresent()) {
-            progress = existing.get();
-            progress.setLastReadChapter(chapter);
-            progress.setLastReadDate(LocalDateTime.now());
-        } else {
-            progress = new UserReadingProgress(user, book, chapter);
-        }
-        userReadingProgressRepository.save(progress);
-    }
-
     public ReadingProgressDTO getReadingProgress(Long userId, Long bookId) {
         Optional<UserReadingProgress> progressOpt = userReadingProgressRepository.findByUserIdAndBookId(userId, bookId);
         if (progressOpt.isPresent()) {
@@ -99,6 +79,30 @@ public class ReadingService {
             return dto;
         }
         return null;
+    }
+
+    private void autoSaveReadingProgress(Chapter chapter) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || auth.getName().equals("anonymousUser")) {
+            return;
+        }
+
+        User user = userRepository.findByEmail(auth.getName()).orElse(null);
+        if (user == null) {
+            return;
+        }
+
+        Book book = chapter.getBook();
+        Optional<UserReadingProgress> existing = userReadingProgressRepository.findByUserIdAndBookId(user.getId(), book.getId());
+        UserReadingProgress progress;
+        if (existing.isPresent()) {
+            progress = existing.get();
+            progress.setLastReadChapter(chapter);
+            progress.setLastReadDate(LocalDateTime.now());
+        } else {
+            progress = new UserReadingProgress(user, book, chapter);
+        }
+        userReadingProgressRepository.save(progress);
     }
 
     // --- Reading Books ---
@@ -149,6 +153,9 @@ public class ReadingService {
             (book.getUploadedBy() == null || !book.getUploadedBy().getEmail().equals(currentUserEmail))) {
             throw new RuntimeException("You do not have permission to view this chapter");
         }
+
+        // Auto-save reading progress for logged-in users
+        autoSaveReadingProgress(chapter);
 
         ChapterDTO dto = new ChapterDTO();
         dto.setId(chapter.getId());

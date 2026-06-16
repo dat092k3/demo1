@@ -3,9 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.BookDTO;
 import com.example.demo.dto.ChapterDTO;
 import com.example.demo.dto.ReadingProgressDTO;
-import com.example.demo.dto.ReadingProgressRequestDTO;
 import com.example.demo.service.ReadingService;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,13 +41,6 @@ public class ReadingController {
     }
 
     // --- Reading Progress ---
-
-    @PostMapping("/progress/save")
-    public ResponseEntity<Void> saveReadingProgress(@RequestParam Long userId,
-            @Valid @RequestBody ReadingProgressRequestDTO request) {
-        readingService.saveReadingProgress(userId, request);
-        return ResponseEntity.ok().build();
-    }
 
     @GetMapping("/progress/view/{bookId}")
     public ResponseEntity<ReadingProgressDTO> getReadingProgress(@RequestParam Long userId, @PathVariable Long bookId) {
