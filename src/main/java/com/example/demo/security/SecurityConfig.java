@@ -40,8 +40,8 @@ public class SecurityConfig {
                                         "/swagger-ui.html",
                                         "/v3/api-docs/**"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/reading/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/books/**").hasAnyRole("USER","ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/reading/**").hasAnyRole("USER","ADMIN")
 
 
                         .requestMatchers(

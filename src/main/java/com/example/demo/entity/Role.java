@@ -13,8 +13,9 @@ public class Role {
     @Column(name = "role_id")
     private Long id;
 
+    @Enumerated(EnumType.STRING)
     @Column(unique = true, nullable = false)
-    private String name; // ROLE_ADMIN, ROLE_USER
+    private ERole name;
 
     @ManyToMany(mappedBy = "roles")
     private List<User> users;
@@ -22,7 +23,7 @@ public class Role {
     public Role() {
     }
 
-    public Role(String name) {
+    public Role(ERole name) {
         this.name = name;
     }
 
@@ -30,11 +31,11 @@ public class Role {
         return id;
     }
 
-    public String getName() {
+    public ERole getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(ERole name) {
         this.name = name;
     }
 

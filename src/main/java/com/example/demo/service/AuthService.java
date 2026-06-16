@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.RegisterRequest;
 import com.example.demo.entity.Role;
+import com.example.demo.entity.ERole;
 import com.example.demo.entity.User;
 import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.UserRepository;
@@ -31,7 +32,7 @@ public class AuthService {
         }
 
         Role role = roleRepository
-                .findByName("USER")
+                .findByName(ERole.USER)
                 .orElseThrow(() ->
                         new RuntimeException("ROLE_USER not found"));
 

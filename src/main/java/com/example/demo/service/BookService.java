@@ -4,6 +4,7 @@ import com.example.demo.dto.BookDTO;
 import com.example.demo.dto.BookRequestDTO;
 import com.example.demo.entity.Author;
 import com.example.demo.entity.Book;
+import com.example.demo.entity.ERole;
 import com.example.demo.entity.Category;
 import com.example.demo.entity.User;
 import com.example.demo.repository.AuthorRepository;
@@ -15,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.lang.NonNull;
 
 import java.util.List;
@@ -41,7 +43,7 @@ public class BookService {
         boolean isAdmin = false;
         String currentUserEmail = null;
         if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
-            isAdmin = auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+            isAdmin = auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_" + ERole.ADMIN.name()));
             currentUserEmail = auth.getName();
         }
 
@@ -95,7 +97,7 @@ public class BookService {
                 .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        boolean isAdmin = auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        boolean isAdmin = auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_" + ERole.ADMIN.name()));
         String currentUserEmail = auth.getName();
 
         if (!isAdmin && (book.getUploadedBy() == null || !book.getUploadedBy().getEmail().equals(currentUserEmail))) {
@@ -122,6 +124,7 @@ public class BookService {
         return mapToDTO(updatedBook);
     }
 
+    @Transactional
     public BookDTO toggleBookVisibility(@NonNull Long id, boolean isPublic) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
@@ -135,6 +138,11 @@ public class BookService {
         }
 
         book.setPublic(isPublic);
+
+        if (!isPublic && book.getChapters() != null) {
+            book.getChapters().forEach(chapter -> chapter.setPublic(false));
+        }
+
         Book updatedBook = bookRepository.save(book);
         return mapToDTO(updatedBook);
     }
