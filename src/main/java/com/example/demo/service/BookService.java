@@ -4,7 +4,7 @@ import com.example.demo.dto.BookDTO;
 import com.example.demo.dto.BookRequestDTO;
 import com.example.demo.entity.Author;
 import com.example.demo.entity.Book;
-import com.example.demo.entity.ERole;
+import com.example.demo.enums.ERole;
 import com.example.demo.entity.Category;
 import com.example.demo.entity.User;
 import com.example.demo.repository.AuthorRepository;

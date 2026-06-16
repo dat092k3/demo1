@@ -1,6 +1,7 @@
 package com.example.demo.config;
 
 import com.example.demo.entity.*;
+import com.example.demo.enums.ERole;
 import com.example.demo.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;

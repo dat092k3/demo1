@@ -1,7 +1,7 @@
 package com.example.demo.repository;
 
 import com.example.demo.entity.Role;
-import com.example.demo.entity.ERole;
+import com.example.demo.enums.ERole;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
