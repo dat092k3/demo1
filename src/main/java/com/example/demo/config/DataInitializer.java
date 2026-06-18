@@ -57,13 +57,13 @@ public class DataInitializer {
 
             // 5. Create Books
             Book book1 = new Book("Harry Potter and the Sorcerer's Stone", "A young boy discovers he is a wizard.", 
-                    LocalDate.of(1997, 6, 26), 100, author1, fiction);
+                    LocalDate.of(1997, 6, 26), author1, fiction);
             
             Book book2 = new Book("A Brief History of Time", "A popular-science book on cosmology.", 
-                    LocalDate.of(1988, 3, 1), 50, author2, science);
+                    LocalDate.of(1988, 3, 1), author2, science);
 
             Book book3 = new Book("Clean Code", "A Handbook of Agile Software Craftsmanship.", 
-                    LocalDate.of(2008, 8, 1), 200, author3, tech);
+                    LocalDate.of(2008, 8, 1), author3, tech);
 
             bookRepository.saveAll(List.of(book1, book2, book3));
 
