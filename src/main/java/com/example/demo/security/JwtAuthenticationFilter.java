@@ -34,8 +34,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
-        System.out.println("JWT FILTER RUN");
-        System.out.println("HEADER = " + authHeader);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -43,10 +41,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         try {
-
             String token = authHeader.substring(7);
 
-            System.out.println("TOKEN = " + token);
 
             String email = jwtService.extractEmail(token);
 

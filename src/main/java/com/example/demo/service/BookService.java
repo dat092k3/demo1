@@ -18,6 +18,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.lang.NonNull;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import com.example.demo.messaging.MessagePublisher;
+import com.example.demo.dto.message.SearchIndexMessage;
 
 import java.util.List;
 import java.util.Objects;
@@ -38,6 +43,10 @@ public class BookService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private MessagePublisher messagePublisher;
+
+    @Cacheable(value = "books", key = "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication() != null ? T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getName() : 'anonymous'")
     public List<BookDTO> getAllBooks() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = false;
@@ -57,12 +66,14 @@ public class BookService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "book", key = "#id")
     public BookDTO getBookById(@NonNull Long id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
         return mapToDTO(book);
     }
 
+    @CacheEvict(value = "books", allEntries = true)
     public BookDTO createBook(BookRequestDTO requestDTO) {
         Author author = authorRepository.findById(requestDTO.getAuthorId())
                 .orElseThrow(() -> new RuntimeException("Author not found with id: " + requestDTO.getAuthorId()));
@@ -88,9 +99,14 @@ public class BookService {
         }
 
         Book savedBook = bookRepository.save(book);
+        messagePublisher.publishSearchIndex(new SearchIndexMessage("BOOK", savedBook.getId(), "CREATE"));
         return mapToDTO(savedBook);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "books", allEntries = true),
+            @CacheEvict(value = "book", key = "#id")
+    })
     public BookDTO updateBook(@NonNull Long id, BookRequestDTO requestDTO) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
@@ -119,9 +135,14 @@ public class BookService {
         }
 
         Book updatedBook = bookRepository.save(book);
+        messagePublisher.publishSearchIndex(new SearchIndexMessage("BOOK", updatedBook.getId(), "UPDATE"));
         return mapToDTO(updatedBook);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "books", allEntries = true),
+            @CacheEvict(value = "book", key = "#id")
+    })
     @Transactional
     public BookDTO toggleBookVisibility(@NonNull Long id, boolean isPublic) {
         Book book = bookRepository.findById(id)
@@ -142,9 +163,14 @@ public class BookService {
         }
 
         Book updatedBook = bookRepository.save(book);
+        messagePublisher.publishSearchIndex(new SearchIndexMessage("BOOK", updatedBook.getId(), "UPDATE"));
         return mapToDTO(updatedBook);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "books", allEntries = true),
+            @CacheEvict(value = "book", key = "#id")
+    })
     public void deleteBook(@NonNull Long id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
@@ -158,6 +184,7 @@ public class BookService {
         }
 
         bookRepository.delete(Objects.requireNonNull(book));
+        messagePublisher.publishSearchIndex(new SearchIndexMessage("BOOK", id, "DELETE"));
     }
 
     private BookDTO mapToDTO(Book book) {
@@ -166,6 +193,7 @@ public class BookService {
         dto.setTitle(book.getTitle());
         dto.setDescription(book.getDescription());
         dto.setPublishedDate(book.getPublishedDate());
+        dto.setViewCount(book.getViewCount());
         if (book.getAuthor() != null) {
             dto.setAuthorId(book.getAuthor().getId());
             dto.setAuthorName(book.getAuthor().getName());

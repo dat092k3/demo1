@@ -9,8 +9,11 @@ import com.example.demo.repository.ChapterRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import com.example.demo.messaging.MessagePublisher;
+import com.example.demo.dto.message.SearchIndexMessage;
 
 @Service
 public class ChapterService {
@@ -21,6 +24,10 @@ public class ChapterService {
     @Autowired
     private BookRepository bookRepository;
 
+    @Autowired
+    private MessagePublisher messagePublisher;
+
+    @CacheEvict(value = "chapters", allEntries = true)
     public ChapterDTO createChapter(Long bookId, ChapterRequestDTO requestDTO) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Book not found with id: " + bookId));
@@ -37,9 +44,11 @@ public class ChapterService {
         }
 
         Chapter savedChapter = chapterRepository.save(chapter);
+        messagePublisher.publishSearchIndex(new SearchIndexMessage("CHAPTER", savedChapter.getId(), "CREATE"));
         return mapToDTO(savedChapter);
     }
 
+    @CacheEvict(value = "chapters", allEntries = true)
     public ChapterDTO updateChapter(Long chapterId, ChapterRequestDTO requestDTO) {
         Chapter chapter = chapterRepository.findById(chapterId)
                 .orElseThrow(() -> new RuntimeException("Chapter not found with id: " + chapterId));
@@ -54,9 +63,11 @@ public class ChapterService {
         }
 
         Chapter updatedChapter = chapterRepository.save(chapter);
+        messagePublisher.publishSearchIndex(new SearchIndexMessage("CHAPTER", updatedChapter.getId(), "UPDATE"));
         return mapToDTO(updatedChapter);
     }
 
+    @CacheEvict(value = "chapters", allEntries = true)
     public void deleteChapter(Long chapterId) {
         Chapter chapter = chapterRepository.findById(chapterId)
                 .orElseThrow(() -> new RuntimeException("Chapter not found with id: " + chapterId));
@@ -64,8 +75,10 @@ public class ChapterService {
         checkPermission(chapter.getBook(), "delete chapter from");
 
         chapterRepository.delete(chapter);
+        messagePublisher.publishSearchIndex(new SearchIndexMessage("CHAPTER", chapterId, "DELETE"));
     }
 
+    @CacheEvict(value = "chapters", allEntries = true)
     public ChapterDTO toggleChapterVisibility(Long chapterId, boolean isPublic) {
         Chapter chapter = chapterRepository.findById(chapterId)
                 .orElseThrow(() -> new RuntimeException("Chapter not found with id: " + chapterId));
@@ -74,6 +87,7 @@ public class ChapterService {
 
         chapter.setPublic(isPublic);
         Chapter updatedChapter = chapterRepository.save(chapter);
+        messagePublisher.publishSearchIndex(new SearchIndexMessage("CHAPTER", updatedChapter.getId(), "UPDATE"));
         return mapToDTO(updatedChapter);
     }
 

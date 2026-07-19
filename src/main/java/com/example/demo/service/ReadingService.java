@@ -6,7 +6,12 @@ import com.example.demo.dto.ReadingProgressDTO;
 import com.example.demo.dto.ReadingProgressRequestDTO;
 import com.example.demo.entity.*;
 import com.example.demo.repository.*;
+import com.example.demo.dto.message.ReadingProgressMessage;
+import com.example.demo.dto.message.ViewCountMessage;
+import com.example.demo.messaging.MessagePublisher;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -35,8 +40,12 @@ public class ReadingService {
     @Autowired
     private UserReadingProgressRepository userReadingProgressRepository;
 
+    @Autowired
+    private MessagePublisher messagePublisher;
+
     // --- Favorite Books ---
 
+    @CacheEvict(value = "favorites", key = "#userId")
     public void addFavoriteBook(Long userId, Long bookId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -50,11 +59,13 @@ public class ReadingService {
         }
     }
 
+    @CacheEvict(value = "favorites", key = "#userId")
     public void removeFavoriteBook(Long userId, Long bookId) {
         Optional<UserFavoriteBook> existing = userFavoriteBookRepository.findByUserIdAndBookId(userId, bookId);
         existing.ifPresent(userFavoriteBookRepository::delete);
     }
 
+    @Cacheable(value = "favorites", key = "#userId")
     public List<BookDTO> getFavoriteBooks(Long userId) {
         List<UserFavoriteBook> favorites = userFavoriteBookRepository.findByUserId(userId);
         return favorites.stream()
@@ -81,32 +92,23 @@ public class ReadingService {
         return null;
     }
 
-    private void autoSaveReadingProgress(Chapter chapter) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || auth.getName().equals("anonymousUser")) {
-            return;
-        }
-
-        User user = userRepository.findByEmail(auth.getName()).orElse(null);
+    private void autoSaveReadingProgress(Chapter chapter, User user) {
         if (user == null) {
             return;
         }
 
-        Book book = chapter.getBook();
-        Optional<UserReadingProgress> existing = userReadingProgressRepository.findByUserIdAndBookId(user.getId(), book.getId());
-        UserReadingProgress progress;
-        if (existing.isPresent()) {
-            progress = existing.get();
-            progress.setLastReadChapter(chapter);
-            progress.setLastReadDate(LocalDateTime.now());
-        } else {
-            progress = new UserReadingProgress(user, book, chapter);
-        }
-        userReadingProgressRepository.save(progress);
+        ReadingProgressMessage message = new ReadingProgressMessage(
+                user.getId(),
+                chapter.getBook().getId(),
+                chapter.getId(),
+                LocalDateTime.now()
+        );
+        messagePublisher.publishReadingProgress(message);
     }
 
     // --- Reading Books ---
 
+    @Cacheable(value = "chapters", key = "#bookId + '_' + (T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication() != null ? T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getName() : 'anonymous')")
     public List<ChapterDTO> getBookChapters(Long bookId) {
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new RuntimeException("Book not found"));
 
@@ -154,8 +156,24 @@ public class ReadingService {
             throw new RuntimeException("You do not have permission to view this chapter");
         }
 
-        // Auto-save reading progress for logged-in users
-        autoSaveReadingProgress(chapter);
+        User currentUser = null;
+        if (currentUserEmail != null) {
+            currentUser = userRepository.findByEmail(currentUserEmail).orElse(null);
+        }
+        
+        Long userId = currentUser != null ? currentUser.getId() : null;
+
+        // Async auto-save reading progress
+        autoSaveReadingProgress(chapter, currentUser);
+
+        // Async increment view count
+        ViewCountMessage viewCountMessage = new ViewCountMessage(
+                book.getId(),
+                chapter.getId(),
+                userId,
+                LocalDateTime.now()
+        );
+        messagePublisher.publishViewCount(viewCountMessage);
 
         ChapterDTO dto = new ChapterDTO();
         dto.setId(chapter.getId());

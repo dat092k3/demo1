@@ -36,15 +36,18 @@ public class Book {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "uploaded_by")
+    private User uploadedBy;
+
+    @Column(nullable = false)
+    private int viewCount = 0;
+
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Chapter> chapters;
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<UserFavoriteBook> favoritedByUsers;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "uploaded_by")
-    private User uploadedBy;
 
     @Column(name = "is_public", nullable = false)
     private boolean isPublic = false;
@@ -139,6 +142,14 @@ public class Book {
 
     public void setPublic(boolean isPublic) {
         this.isPublic = isPublic;
+    }
+
+    public int getViewCount() {
+        return viewCount;
+    }
+
+    public void setViewCount(int viewCount) {
+        this.viewCount = viewCount;
     }
 
     @Override
