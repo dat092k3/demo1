@@ -55,6 +55,10 @@ public class Book {
     @Column(name = "cover_image", length = 500)
     private String coverImage;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private com.example.demo.enums.BookStatus status = com.example.demo.enums.BookStatus.ONGOING;
+
     public Book() {
     }
 
@@ -161,6 +165,14 @@ public class Book {
 
     public void setCoverImage(String coverImage) {
         this.coverImage = coverImage;
+    }
+
+    public com.example.demo.enums.BookStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(com.example.demo.enums.BookStatus status) {
+        this.status = status;
     }
 
     @Override

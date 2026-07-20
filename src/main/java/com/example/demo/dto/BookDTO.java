@@ -20,6 +20,7 @@ public class BookDTO {
     private String categoryName;
     private int viewCount;
     private String coverImage;
+    private com.example.demo.enums.BookStatus status;
 
     public BookDTO() {
     }
@@ -102,5 +103,13 @@ public class BookDTO {
 
     public void setCoverImage(String coverImage) {
         this.coverImage = coverImage;
+    }
+
+    public com.example.demo.enums.BookStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(com.example.demo.enums.BookStatus status) {
+        this.status = status;
     }
 }

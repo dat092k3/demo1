@@ -23,15 +23,19 @@ public class BookDocument {
     @Field(type = FieldType.Keyword)
     private String categoryName;
 
+    @Field(type = FieldType.Keyword)
+    private String status;
+
     public BookDocument() {
     }
 
-    public BookDocument(Long id, String title, String description, String authorName, String categoryName) {
+    public BookDocument(Long id, String title, String description, String authorName, String categoryName, String status) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.authorName = authorName;
         this.categoryName = categoryName;
+        this.status = status;
     }
 
     public Long getId() {
@@ -72,5 +76,13 @@ public class BookDocument {
 
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

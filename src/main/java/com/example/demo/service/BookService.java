@@ -87,6 +87,10 @@ public class BookService {
         book.setAuthor(author);
         book.setCategory(category);
 
+        if (requestDTO.getStatus() != null) {
+            book.setStatus(requestDTO.getStatus());
+        }
+
         if (requestDTO.getIsPublic() != null) {
             book.setPublic(requestDTO.getIsPublic());
         }
@@ -130,6 +134,10 @@ public class BookService {
         book.setPublishedDate(requestDTO.getPublishedDate());
         book.setAuthor(author);
         book.setCategory(category);
+
+        if (requestDTO.getStatus() != null) {
+            book.setStatus(requestDTO.getStatus());
+        }
 
         if (requestDTO.getIsPublic() != null) {
             book.setPublic(requestDTO.getIsPublic());
@@ -205,6 +213,7 @@ public class BookService {
             dto.setCategoryName(book.getCategory().getName());
         }
         dto.setCoverImage(book.getCoverImage());
+        dto.setStatus(book.getStatus());
         return dto;
     }
 }

@@ -56,7 +56,7 @@ public class SearchIndexConsumer {
             bookRepository.findById(id).ifPresent(book -> {
                 String authorName = book.getAuthor() != null ? book.getAuthor().getName() : "";
                 String categoryName = book.getCategory() != null ? book.getCategory().getName() : "";
-                BookDocument bd = new BookDocument(book.getId(), book.getTitle(), book.getDescription(), authorName, categoryName);
+                BookDocument bd = new BookDocument(book.getId(), book.getTitle(), book.getDescription(), authorName, categoryName, book.getStatus() != null ? book.getStatus().name() : "ONGOING");
                 bookSearchRepository.save(bd);
             });
         }

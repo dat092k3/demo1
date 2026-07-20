@@ -24,6 +24,8 @@ public class BookRequestDTO {
 
     private String coverImage;
 
+    private com.example.demo.enums.BookStatus status;
+
     public String getTitle() {
         return title;
     }
@@ -80,5 +82,13 @@ public class BookRequestDTO {
 
     public void setCoverImage(String coverImage) {
         this.coverImage = coverImage;
+    }
+
+    public com.example.demo.enums.BookStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(com.example.demo.enums.BookStatus status) {
+        this.status = status;
     }
 }
