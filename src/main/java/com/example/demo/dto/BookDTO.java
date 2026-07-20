@@ -19,6 +19,7 @@ public class BookDTO {
     private Long categoryId;
     private String categoryName;
     private int viewCount;
+    private String coverImage;
 
     public BookDTO() {
     }
@@ -93,5 +94,13 @@ public class BookDTO {
 
     public void setViewCount(int viewCount) {
         this.viewCount = viewCount;
+    }
+
+    public String getCoverImage() {
+        return coverImage;
+    }
+
+    public void setCoverImage(String coverImage) {
+        this.coverImage = coverImage;
     }
 }

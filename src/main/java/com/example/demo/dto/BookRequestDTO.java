@@ -22,6 +22,8 @@ public class BookRequestDTO {
 
     private Boolean isPublic;
 
+    private String coverImage;
+
     public String getTitle() {
         return title;
     }
@@ -70,5 +72,13 @@ public class BookRequestDTO {
 
     public void setIsPublic(Boolean isPublic) {
         this.isPublic = isPublic;
+    }
+
+    public String getCoverImage() {
+        return coverImage;
+    }
+
+    public void setCoverImage(String coverImage) {
+        this.coverImage = coverImage;
     }
 }

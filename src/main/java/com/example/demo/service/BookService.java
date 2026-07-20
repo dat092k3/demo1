@@ -90,6 +90,7 @@ public class BookService {
         if (requestDTO.getIsPublic() != null) {
             book.setPublic(requestDTO.getIsPublic());
         }
+        book.setCoverImage(requestDTO.getCoverImage());
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
@@ -133,6 +134,7 @@ public class BookService {
         if (requestDTO.getIsPublic() != null) {
             book.setPublic(requestDTO.getIsPublic());
         }
+        book.setCoverImage(requestDTO.getCoverImage());
 
         Book updatedBook = bookRepository.save(book);
         messagePublisher.publishSearchIndex(new SearchIndexMessage("BOOK", updatedBook.getId(), "UPDATE"));
@@ -202,6 +204,7 @@ public class BookService {
             dto.setCategoryId(book.getCategory().getId());
             dto.setCategoryName(book.getCategory().getName());
         }
+        dto.setCoverImage(book.getCoverImage());
         return dto;
     }
 }

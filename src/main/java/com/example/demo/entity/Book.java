@@ -52,6 +52,9 @@ public class Book {
     @Column(name = "is_public", nullable = false)
     private boolean isPublic = false;
 
+    @Column(name = "cover_image", length = 500)
+    private String coverImage;
+
     public Book() {
     }
 
@@ -150,6 +153,14 @@ public class Book {
 
     public void setViewCount(int viewCount) {
         this.viewCount = viewCount;
+    }
+
+    public String getCoverImage() {
+        return coverImage;
+    }
+
+    public void setCoverImage(String coverImage) {
+        this.coverImage = coverImage;
     }
 
     @Override
