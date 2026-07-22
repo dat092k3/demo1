@@ -22,8 +22,8 @@ public class Chapter {
     @Column(name = "page_number")
     private Integer pageNumber;
 
-    @Column(name = "content", columnDefinition = "LONGTEXT")
-    private String content;
+    @Column(name = "file_path", length = 500)
+    private String filePath;
 
     @NotNull(message = "Book cannot be null")
     @ManyToOne(fetch = FetchType.EAGER)
@@ -36,10 +36,10 @@ public class Chapter {
     public Chapter() {
     }
 
-    public Chapter(String title, Integer pageNumber, String content, Book book) {
+    public Chapter(String title, Integer pageNumber, String filePath, Book book) {
         this.title = title;
         this.pageNumber = pageNumber;
-        this.content = content;
+        this.filePath = filePath;
         this.book = book;
     }
 
@@ -68,12 +68,12 @@ public class Chapter {
         this.pageNumber = pageNumber;
     }
 
-    public String getContent() {
-        return content;
+    public String getFilePath() {
+        return filePath;
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
     }
 
     public Book getBook() {

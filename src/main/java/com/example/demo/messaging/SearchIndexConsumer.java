@@ -33,6 +33,9 @@ public class SearchIndexConsumer {
     @Autowired
     private ChapterSearchRepository chapterSearchRepository;
 
+    @Autowired
+    private com.example.demo.service.FileStorageService fileStorageService;
+
     @RabbitListener(queues = RabbitMQConfig.SEARCH_INDEX_QUEUE)
     public void consumeSearchIndexMessage(SearchIndexMessage message) {
         logger.info("Received SearchIndexMessage: {} for {} with ID {}", message.getAction(), message.getEntityType(), message.getEntityId());
@@ -70,7 +73,9 @@ public class SearchIndexConsumer {
             chapterRepository.findById(id).ifPresent(chapter -> {
                 String bookTitle = chapter.getBook() != null ? chapter.getBook().getTitle() : "";
                 Long bookId = chapter.getBook() != null ? chapter.getBook().getId() : null;
-                ChapterDocument cd = new ChapterDocument(chapter.getId(), chapter.getTitle(), chapter.getContent(), bookId, bookTitle);
+                String content = fileStorageService.readFile(chapter.getFilePath());
+                
+                ChapterDocument cd = new ChapterDocument(chapter.getId(), chapter.getTitle(), content, bookId, bookTitle);
                 chapterSearchRepository.save(cd);
             });
         }

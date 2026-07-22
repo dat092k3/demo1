@@ -32,6 +32,9 @@ public class DataMigrationService {
     @Autowired
     private ChapterSearchRepository chapterSearchRepository;
 
+    @Autowired
+    private FileStorageService fileStorageService;
+
     public void reindexAll() {
         logger.info("Starting Elasticsearch reindex...");
 
@@ -55,8 +58,9 @@ public class DataMigrationService {
         for (Chapter chapter : chapters) {
             String bookTitle = chapter.getBook() != null ? chapter.getBook().getTitle() : "";
             Long bookId = chapter.getBook() != null ? chapter.getBook().getId() : null;
+            String content = fileStorageService.readFile(chapter.getFilePath());
 
-            ChapterDocument cd = new ChapterDocument(chapter.getId(), chapter.getTitle(), chapter.getContent(), bookId, bookTitle);
+            ChapterDocument cd = new ChapterDocument(chapter.getId(), chapter.getTitle(), content, bookId, bookTitle);
             chapterSearchRepository.save(cd);
         }
         logger.info("Migrated {} chapters to Elasticsearch", chapters.size());

@@ -12,6 +12,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import com.example.demo.messaging.MessagePublisher;
 import com.example.demo.dto.message.SearchIndexMessage;
 
@@ -27,17 +28,22 @@ public class ChapterService {
     @Autowired
     private MessagePublisher messagePublisher;
 
+    @Autowired
+    private FileStorageService fileStorageService;
+
     @CacheEvict(value = "chapters", allEntries = true)
-    public ChapterDTO createChapter(Long bookId, ChapterRequestDTO requestDTO) {
+    public ChapterDTO createChapter(Long bookId, ChapterRequestDTO requestDTO, MultipartFile file) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Book not found with id: " + bookId));
 
         checkPermission(book, "create chapter for");
 
+        String filePath = fileStorageService.saveFile(bookId, requestDTO.getContent(), file);
+
         Chapter chapter = new Chapter();
         chapter.setBook(book);
         chapter.setTitle(requestDTO.getTitle());
-        chapter.setContent(requestDTO.getContent());
+        chapter.setFilePath(filePath);
         chapter.setPageNumber(requestDTO.getPageNumber());
         if (requestDTO.getIsPublic() != null) {
             chapter.setPublic(requestDTO.getIsPublic());
@@ -49,14 +55,22 @@ public class ChapterService {
     }
 
     @CacheEvict(value = "chapters", allEntries = true)
-    public ChapterDTO updateChapter(Long chapterId, ChapterRequestDTO requestDTO) {
+    public ChapterDTO updateChapter(Long chapterId, ChapterRequestDTO requestDTO, MultipartFile file) {
         Chapter chapter = chapterRepository.findById(chapterId)
                 .orElseThrow(() -> new RuntimeException("Chapter not found with id: " + chapterId));
 
         checkPermission(chapter.getBook(), "modify chapter in");
 
+        if (file != null || (requestDTO.getContent() != null && !requestDTO.getContent().isEmpty())) {
+            // Xóa file cũ nếu có
+            if (chapter.getFilePath() != null) {
+                fileStorageService.deleteFile(chapter.getFilePath());
+            }
+            String newFilePath = fileStorageService.saveFile(chapter.getBook().getId(), requestDTO.getContent(), file);
+            chapter.setFilePath(newFilePath);
+        }
+
         chapter.setTitle(requestDTO.getTitle());
-        chapter.setContent(requestDTO.getContent());
         chapter.setPageNumber(requestDTO.getPageNumber());
         if (requestDTO.getIsPublic() != null) {
             chapter.setPublic(requestDTO.getIsPublic());
@@ -73,6 +87,10 @@ public class ChapterService {
                 .orElseThrow(() -> new RuntimeException("Chapter not found with id: " + chapterId));
 
         checkPermission(chapter.getBook(), "delete chapter from");
+
+        if (chapter.getFilePath() != null) {
+            fileStorageService.deleteFile(chapter.getFilePath());
+        }
 
         chapterRepository.delete(chapter);
         messagePublisher.publishSearchIndex(new SearchIndexMessage("CHAPTER", chapterId, "DELETE"));
@@ -106,7 +124,10 @@ public class ChapterService {
         dto.setId(chapter.getId());
         dto.setTitle(chapter.getTitle());
         dto.setPageNumber(chapter.getPageNumber());
-        dto.setContent(chapter.getContent());
+        
+        String content = fileStorageService.readFile(chapter.getFilePath());
+        dto.setContent(content);
+        
         dto.setPublic(chapter.isPublic());
         return dto;
     }

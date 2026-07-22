@@ -3,7 +3,6 @@ package com.example.demo.service;
 import com.example.demo.dto.BookDTO;
 import com.example.demo.dto.ChapterDTO;
 import com.example.demo.dto.ReadingProgressDTO;
-import com.example.demo.dto.ReadingProgressRequestDTO;
 import com.example.demo.entity.*;
 import com.example.demo.repository.*;
 import com.example.demo.dto.message.ReadingProgressMessage;
@@ -43,6 +42,9 @@ public class ReadingService {
     @Autowired
     private MessagePublisher messagePublisher;
 
+    @Autowired
+    private FileStorageService fileStorageService;
+
     // --- Favorite Books ---
 
     @CacheEvict(value = "favorites", key = "#userId")
@@ -69,7 +71,7 @@ public class ReadingService {
     public List<BookDTO> getFavoriteBooks(Long userId) {
         List<UserFavoriteBook> favorites = userFavoriteBookRepository.findByUserId(userId);
         return favorites.stream()
-                .map(UserFavoriteBook::getBook)
+                .map(favorite -> favorite.getBook())
                 .map(this::mapToBookDTO)
                 .collect(Collectors.toList());
     }
@@ -101,8 +103,7 @@ public class ReadingService {
                 user.getId(),
                 chapter.getBook().getId(),
                 chapter.getId(),
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
         messagePublisher.publishReadingProgress(message);
     }
 
@@ -151,8 +152,8 @@ public class ReadingService {
         }
 
         Book book = chapter.getBook();
-        if (!isAdmin && !chapter.isPublic() && 
-            (book.getUploadedBy() == null || !book.getUploadedBy().getEmail().equals(currentUserEmail))) {
+        if (!isAdmin && !chapter.isPublic() &&
+                (book.getUploadedBy() == null || !book.getUploadedBy().getEmail().equals(currentUserEmail))) {
             throw new RuntimeException("You do not have permission to view this chapter");
         }
 
@@ -160,7 +161,7 @@ public class ReadingService {
         if (currentUserEmail != null) {
             currentUser = userRepository.findByEmail(currentUserEmail).orElse(null);
         }
-        
+
         Long userId = currentUser != null ? currentUser.getId() : null;
 
         // Async auto-save reading progress
@@ -171,15 +172,17 @@ public class ReadingService {
                 book.getId(),
                 chapter.getId(),
                 userId,
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
         messagePublisher.publishViewCount(viewCountMessage);
 
         ChapterDTO dto = new ChapterDTO();
         dto.setId(chapter.getId());
         dto.setTitle(chapter.getTitle());
         dto.setPageNumber(chapter.getPageNumber());
-        dto.setContent(chapter.getContent());
+
+        String content = fileStorageService.readFile(chapter.getFilePath());
+        dto.setContent(content);
+
         dto.setPublic(chapter.isPublic());
         return dto;
     }

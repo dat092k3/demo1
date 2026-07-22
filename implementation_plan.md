@@ -97,7 +97,7 @@ Client → Controller → Redis Cache (hit?) → Service → MySQL
 
 ---
 
-### Phase 3: RabbitMQ — Xử lý bất đồng bộ
+### Phase 3: RabbitMQ — Xử lý bất đồng bộ [x]
 
 #### [NEW] config/RabbitMQConfig.java
 - Exchange, Queue, Binding cho 3 queues: view-count, reading-progress, search-index
@@ -140,7 +140,7 @@ Client → Controller → Redis Cache (hit?) → Service → MySQL
 
 ---
 
-### Phase 4: Elasticsearch — Full-text Search
+### Phase 4: Elasticsearch — Full-text Search [x]
 
 #### [NEW] config/ElasticsearchConfig.java
 - ES Client, Vietnamese analyzer (ICU)
@@ -191,8 +191,55 @@ docker-compose up -d && docker-compose ps
 
 review plan và trả lời các câu hỏi:
 
-Message Queue: RabbitMQ hay Kafka?
-Docker: Bạn đã cài Docker Desktop chưa?
-View Count: Đếm lượt xem theo Book level hay cả Chapter level?
-Cache TTL: Book list = 10p, Book detail = 30p, Chapter list = 15p — OK?
-Search Scope: Tìm kiếm theo những field nào?
+Message Queue: RabbitMQ
+Docker: đã cài Docker Desktop
+View Count: Đếm lượt xem theo Book level
+Cache TTL: Book list = 10p, Book detail = 30p, Chapter list = 15p — OK
+Search Scope: Tìm kiếm theo những field : title, description, authorName, categoryName, chapter title, chapter content
+
+
+sau khi hoàn thành 4 phase thì update lại implementation_plan.md, bổ sung thêm các file cần sửa
+
+---
+
+## Trạng thái Hoàn thành (Cập nhật)
+
+Hệ thống đã hoàn tất 4 phase và khắc phục một số vấn đề phát sinh:
+
+### Các file đã điều chỉnh/sửa lỗi (Bug Fixes):
+1. **[MODIFY]** `src/main/java/com/example/demo/entity/Chapter.java`: Xóa field `viewCount` do chỉ đếm view ở cấp độ Book.
+2. **[MODIFY]** `src/main/java/com/example/demo/scheduler/ViewCountSyncScheduler.java`: Gỡ bỏ logic đồng bộ View Count cho Chapter.
+3. **[MODIFY]** `src/main/java/com/example/demo/messaging/ViewCountConsumer.java`: Gỡ bỏ logic tăng Redis counter cho Chapter.
+4. **[DOCKER]** Cập nhật lại trạng thái chạy: Dọn dẹp các container bị đụng port và đảm bảo `docker-compose up -d --build` chạy thành công image Elasticsearch tích hợp sẵn `analysis-icu`. Tích hợp hoàn toàn ổn định (Tests Pass).
+
+---
+
+## Phase 5: Tự động đồng bộ dữ liệu vào Elasticsearch (Auto-Sync)
+
+### Phân tích Kiến trúc & Hiệu suất
+Yêu cầu: Đồng bộ dữ liệu mỗi khi Sách/Chương được tạo, sửa, xóa nhưng **không được làm chậm API chính** (Hiệu suất cao).
+- **Cách không nên làm:** Cập nhật Elasticsearch trực tiếp (đồng bộ) ngay trong API thêm/sửa sách. Việc này tốn thêm HTTP call tới ES, kéo dài thời gian phản hồi API và dễ gây lỗi (nếu ES sập thì API sập theo).
+- **Cách tối ưu nhất (Event-Driven):** Sử dụng Message Queue (RabbitMQ). API chỉ cần gửi một message nhỏ gọn ("Sách ID X vừa được tạo") vào Queue rồi trả về ngay lập tức cho người dùng. Một Consumer chạy ngầm (Asynchronous) sẽ nhặt message này và đẩy vào Elasticsearch.
+
+**Tin vui:** Hạ tầng RabbitMQ và các file liên quan (`SearchIndexConsumer`, `SearchIndexMessage`, `MessagePublisher`) **đã được thiết kế sẵn** trong code của bạn! Chỉ còn thiếu bước "Bóp cò" (Trigger) gửi message.
+
+### Proposed Changes (Các file cần sửa)
+
+#### [MODIFY] `src/main/java/com/example/demo/service/BookService.java`
+- Inject `MessagePublisher` (đã có sẵn).
+- Tại hàm `createBook`, `updateBook`: Thêm code gọi `messagePublisher.publishSearchIndex(new SearchIndexMessage("BOOK", book.getId(), "CREATE/UPDATE"));` sau khi lưu vào DB.
+- Tại hàm `deleteBook`: Thêm code gửi event `DELETE` trước hoặc sau khi xóa khỏi DB.
+
+#### [MODIFY] `src/main/java/com/example/demo/service/ChapterService.java`
+- Tương tự như Book, gọi `MessagePublisher` tại các hàm `addChapter`, `updateChapter`, `deleteChapter` với `entityType = "CHAPTER"`.
+
+### Verification Plan
+1. **Automated Tests:** Chạy lại toàn bộ `mvn test` để đảm bảo code không có lỗi cú pháp.
+2. **Manual:** 
+   - Dùng API POST tạo một Book mới.
+   - Kiểm tra log để thấy Message được gửi vào RabbitMQ và `SearchIndexConsumer` xử lý thành công.
+   - Gọi API tìm kiếm `GET /api/search/books` với tên sách vừa tạo để xác minh nó đã vào Elasticsearch ngay lập tức mà không cần gọi hàm reindex.
+
+> [!IMPORTANT]
+> **User Review Required**
+> Xin vui lòng xác nhận kế hoạch trên. Nếu bạn đồng ý với cách tiếp cận dùng RabbitMQ để tối ưu hiệu suất, hãy bấm **Proceed** để tôi tiến hành sửa code ngay nhé!

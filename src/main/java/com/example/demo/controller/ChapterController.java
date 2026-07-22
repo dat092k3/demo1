@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
 
 @RestController
 @RequestMapping("/api/chapters")
@@ -16,18 +18,20 @@ public class ChapterController {
     @Autowired
     private ChapterService chapterService;
 
-    @PostMapping("/add-to-book/{bookId}")
+    @PostMapping(value = "/add-to-book/{bookId}", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<ChapterDTO> createChapter(
             @PathVariable Long bookId,
-            @Valid @RequestBody ChapterRequestDTO requestDTO) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(chapterService.createChapter(bookId, requestDTO));
+            @RequestPart("chapter") @Valid ChapterRequestDTO requestDTO,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(chapterService.createChapter(bookId, requestDTO, file));
     }
 
-    @PutMapping("/update/{chapterId}")
+    @PutMapping(value = "/update/{chapterId}", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<ChapterDTO> updateChapter(
             @PathVariable Long chapterId,
-            @Valid @RequestBody ChapterRequestDTO requestDTO) {
-        return ResponseEntity.ok(chapterService.updateChapter(chapterId, requestDTO));
+            @RequestPart("chapter") @Valid ChapterRequestDTO requestDTO,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+        return ResponseEntity.ok(chapterService.updateChapter(chapterId, requestDTO, file));
     }
 
     @DeleteMapping("/delete/{chapterId}")
