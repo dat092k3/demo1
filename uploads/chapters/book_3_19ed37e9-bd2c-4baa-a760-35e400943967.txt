@@ -1,0 +1,1 @@
+There will be code. One might argue that a book about clean code is not going to help much. Bad code can kill a company. Consider all the horror stories you've heard about bad software.

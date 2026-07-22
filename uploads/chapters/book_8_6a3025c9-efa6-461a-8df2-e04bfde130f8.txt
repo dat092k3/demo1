@@ -1,0 +1,1 @@
+I am going to begin this book with a war story. It's a story about a program I refactored, and about the way in which I did it. My colleagues had been raving about refactoring, so I had a good, if vague, idea of what it was.
