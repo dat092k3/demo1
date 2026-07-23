@@ -214,6 +214,10 @@ public class BookService {
         }
         dto.setCoverImage(book.getCoverImage());
         dto.setStatus(book.getStatus());
+        if (book.getUploadedBy() != null) {
+            dto.setUploadedByUserId(book.getUploadedBy().getId());   // 👈 thêm dòng này
+        }
         return dto;
     }
+
 }

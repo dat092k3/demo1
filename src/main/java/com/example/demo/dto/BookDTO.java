@@ -112,4 +112,14 @@ public class BookDTO {
     public void setStatus(com.example.demo.enums.BookStatus status) {
         this.status = status;
     }
+
+    private Long uploadedByUserId;
+
+    public Long getUploadedByUserId() {
+        return uploadedByUserId;
+    }
+
+    public void setUploadedByUserId(Long uploadedByUserId) {
+        this.uploadedByUserId = uploadedByUserId;
+    }
 }
