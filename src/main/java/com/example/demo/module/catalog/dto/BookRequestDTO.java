@@ -14,8 +14,13 @@ public class BookRequestDTO {
     @PastOrPresent(message = "Published date cannot be in the future")
     private LocalDate publishedDate;
 
-    @NotNull(message = "Author ID cannot be null")
     private Long authorId;
+
+    private String authorName;
+
+    private String authorBio;
+
+    private Boolean isNewAuthor;
 
     @NotNull(message = "Category ID cannot be null")
     private Long categoryId;
@@ -50,13 +55,36 @@ public class BookRequestDTO {
         this.publishedDate = publishedDate;
     }
 
-    @NonNull
     public Long getAuthorId() {
         return authorId;
     }
 
     public void setAuthorId(Long authorId) {
         this.authorId = authorId;
+    }
+
+    public String getAuthorName() {
+        return authorName;
+    }
+
+    public void setAuthorName(String authorName) {
+        this.authorName = authorName;
+    }
+
+    public String getAuthorBio() {
+        return authorBio;
+    }
+
+    public void setAuthorBio(String authorBio) {
+        this.authorBio = authorBio;
+    }
+
+    public Boolean getIsNewAuthor() {
+        return isNewAuthor;
+    }
+
+    public void setIsNewAuthor(Boolean isNewAuthor) {
+        this.isNewAuthor = isNewAuthor;
     }
 
     @NonNull
