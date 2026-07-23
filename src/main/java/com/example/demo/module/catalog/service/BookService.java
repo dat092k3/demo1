@@ -73,7 +73,10 @@ public class BookService {
         return mapToDTO(book);
     }
 
-    @CacheEvict(value = "books", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "books", allEntries = true),
+            @CacheEvict(value = "authors", allEntries = true)
+    })
     public BookDTO createBook(BookRequestDTO requestDTO) {
         Author author;
         if (Boolean.TRUE.equals(requestDTO.getIsNewAuthor())) {
@@ -127,7 +130,8 @@ public class BookService {
 
     @Caching(evict = {
             @CacheEvict(value = "books", allEntries = true),
-            @CacheEvict(value = "book", key = "#id")
+            @CacheEvict(value = "book", key = "#id"),
+            @CacheEvict(value = "authors", allEntries = true)
     })
     public BookDTO updateBook(@NonNull Long id, BookRequestDTO requestDTO) {
         Book book = bookRepository.findById(id)
