@@ -44,7 +44,6 @@ public class RedisConfig {
 
         // Cấu hình mặc định (60 phút) sử dụng đúng Serializer đã sửa lỗi
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .computePrefixWith(cacheName -> "v2::" + cacheName + "::")
                 .entryTtl(Duration.ofMinutes(60))
                 .serializeKeysWith(
                         RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
