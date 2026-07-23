@@ -75,8 +75,33 @@ public class BookService {
 
     @CacheEvict(value = "books", allEntries = true)
     public BookDTO createBook(BookRequestDTO requestDTO) {
-        Author author = authorRepository.findById(requestDTO.getAuthorId())
-                .orElseThrow(() -> new RuntimeException("Author not found with id: " + requestDTO.getAuthorId()));
+        Author author;
+
+        if (requestDTO.getAuthorId() != null) {
+
+            author = authorRepository.findById(requestDTO.getAuthorId())
+                    .orElseThrow(() ->
+                            new RuntimeException("Author not found"));
+
+        } else if (requestDTO.getAuthorName() != null
+                && !requestDTO.getAuthorName().trim().isEmpty()) {
+
+            author = authorRepository
+                    .findByName(requestDTO.getAuthorName().trim())
+                    .orElseGet(() -> {
+
+                        Author newAuthor = new Author();
+                        newAuthor.setName(requestDTO.getAuthorName().trim());
+
+                        return authorRepository.save(newAuthor);
+
+                    });
+
+        } else {
+
+            throw new RuntimeException("Author is required");
+
+        }
         Category category = categoryRepository.findById(requestDTO.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found with id: " + requestDTO.getCategoryId()));
 
@@ -124,8 +149,33 @@ public class BookService {
             throw new RuntimeException("You do not have permission to modify this book");
         }
 
-        Author author = authorRepository.findById(requestDTO.getAuthorId())
-                .orElseThrow(() -> new RuntimeException("Author not found with id: " + requestDTO.getAuthorId()));
+        Author author;
+
+        if (requestDTO.getAuthorId() != null) {
+
+            author = authorRepository.findById(requestDTO.getAuthorId())
+                    .orElseThrow(() ->
+                            new RuntimeException("Author not found"));
+
+        } else if (requestDTO.getAuthorName() != null
+                && !requestDTO.getAuthorName().trim().isEmpty()) {
+
+            author = authorRepository
+                    .findByName(requestDTO.getAuthorName().trim())
+                    .orElseGet(() -> {
+
+                        Author newAuthor = new Author();
+                        newAuthor.setName(requestDTO.getAuthorName().trim());
+
+                        return authorRepository.save(newAuthor);
+
+                    });
+
+        } else {
+
+            throw new RuntimeException("Author is required");
+
+        }
         Category category = categoryRepository.findById(requestDTO.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found with id: " + requestDTO.getCategoryId()));
 

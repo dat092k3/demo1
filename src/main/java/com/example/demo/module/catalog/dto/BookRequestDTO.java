@@ -14,8 +14,9 @@ public class BookRequestDTO {
     @PastOrPresent(message = "Published date cannot be in the future")
     private LocalDate publishedDate;
 
-    @NotNull(message = "Author ID cannot be null")
     private Long authorId;
+
+    private String authorName;
 
     @NotNull(message = "Category ID cannot be null")
     private Long categoryId;
@@ -50,7 +51,7 @@ public class BookRequestDTO {
         this.publishedDate = publishedDate;
     }
 
-    @NonNull
+
     public Long getAuthorId() {
         return authorId;
     }
@@ -90,5 +91,13 @@ public class BookRequestDTO {
 
     public void setStatus(com.example.demo.module.catalog.enums.BookStatus status) {
         this.status = status;
+    }
+
+    public String getAuthorName() {
+        return authorName;
+    }
+
+    public void setAuthorName(String authorName) {
+        this.authorName = authorName;
     }
 }
