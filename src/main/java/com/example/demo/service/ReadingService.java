@@ -67,7 +67,7 @@ public class ReadingService {
         existing.ifPresent(userFavoriteBookRepository::delete);
     }
 
-    @Cacheable(value = "favorites", key = "#userId")
+    @Cacheable(value = "favorites", key = "#userId", sync = true)
     public List<BookDTO> getFavoriteBooks(Long userId) {
         List<UserFavoriteBook> favorites = userFavoriteBookRepository.findByUserId(userId);
         return favorites.stream()
@@ -109,7 +109,7 @@ public class ReadingService {
 
     // --- Reading Books ---
 
-    @Cacheable(value = "chapters", key = "#bookId + '_' + (T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication() != null ? T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getName() : 'anonymous')")
+    @Cacheable(value = "chapters", key = "#bookId + '_' + (T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication() != null ? T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getName() : 'anonymous')", sync = true)
     public List<ChapterDTO> getBookChapters(Long bookId) {
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new RuntimeException("Book not found"));
 

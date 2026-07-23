@@ -9,7 +9,9 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.cache.RedisCacheWriter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -22,9 +24,9 @@ import java.util.Map;
 @EnableCaching
 public class RedisConfig {
 
-    // 1. Tạo một Serializer dùng chung đã cấu hình sẵn JavaTimeModule để tránh lặp
+    // 1. Tạo một Serializer dùng chung đã cấu hình sẵn JavaTimeModule và Zstd
     // lại code
-    private GenericJackson2JsonRedisSerializer createJsonSerializer() {
+    private RedisSerializer<Object> createSerializer() {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule()); // Sửa lỗi LocalDate
 
@@ -32,12 +34,13 @@ public class RedisConfig {
                 objectMapper.getPolymorphicTypeValidator(),
                 ObjectMapper.DefaultTyping.NON_FINAL);
 
-        return new GenericJackson2JsonRedisSerializer(objectMapper);
+        GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+        return new ZstdRedisSerializer<>(jsonSerializer);
     }
 
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-        GenericJackson2JsonRedisSerializer jsonSerializer = createJsonSerializer();
+        RedisSerializer<Object> serializer = createSerializer();
 
         // Cấu hình mặc định (60 phút) sử dụng đúng Serializer đã sửa lỗi
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
@@ -45,7 +48,7 @@ public class RedisConfig {
                 .serializeKeysWith(
                         RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(
-                        RedisSerializationContext.SerializationPair.fromSerializer(jsonSerializer));
+                        RedisSerializationContext.SerializationPair.fromSerializer(serializer));
 
         // Cấu hình thời gian lưu trữ (TTL) riêng biệt cho từng nghiệp vụ
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
@@ -58,7 +61,10 @@ public class RedisConfig {
         // 15 phút tùy dung lượng RAM
         cacheConfigurations.put("chapters", defaultConfig.entryTtl(Duration.ofMinutes(15)));
 
-        return RedisCacheManager.builder(connectionFactory)
+        RedisCacheWriter cacheWriter = new JitterRedisCacheWriter(
+                RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory));
+
+        return RedisCacheManager.builder(cacheWriter)
                 .cacheDefaults(defaultConfig)
                 .withInitialCacheConfigurations(cacheConfigurations)
                 .build();
@@ -69,16 +75,16 @@ public class RedisConfig {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
 
-        GenericJackson2JsonRedisSerializer jsonSerializer = createJsonSerializer();
+        RedisSerializer<Object> serializer = createSerializer();
 
         // Sử dụng String cho Key
         template.setKeySerializer(new StringRedisSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
 
-        // Sử dụng JSON chuẩn đã sửa lỗi cho Value (Rất quan trọng cho luồng ghi đếm
+        // Value (Rất quan trọng cho luồng ghi đếm
         // view/thả tim)
-        template.setValueSerializer(jsonSerializer);
-        template.setHashValueSerializer(jsonSerializer);
+        template.setValueSerializer(serializer);
+        template.setHashValueSerializer(serializer);
 
         return template;
     }

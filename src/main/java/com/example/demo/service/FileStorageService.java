@@ -37,6 +37,10 @@ public class FileStorageService {
             Path targetLocation = this.fileStorageLocation.resolve(fileName);
             
             if (file != null && !file.isEmpty()) {
+                String contentType = file.getContentType();
+                if (contentType == null || !contentType.startsWith("text/plain")) {
+                    throw new RuntimeException("Chỉ chấp nhận file văn bản (.txt) cho nội dung truyện");
+                }
                 Files.copy(file.getInputStream(), targetLocation, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
             } else if (content != null && !content.isEmpty()) {
                 Files.writeString(targetLocation, content, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
@@ -56,6 +60,10 @@ public class FileStorageService {
         }
         try {
             Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
+            if (!filePath.startsWith(this.fileStorageLocation)) {
+                throw new SecurityException("Cảnh báo: Hành vi truy cập file trái phép!");
+            }
+            
             if (Files.exists(filePath)) {
                 return Files.readString(filePath, StandardCharsets.UTF_8);
             } else {
@@ -72,6 +80,9 @@ public class FileStorageService {
         }
         try {
             Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
+            if (!filePath.startsWith(this.fileStorageLocation)) {
+                throw new SecurityException("Cảnh báo: Hành vi xóa file trái phép!");
+            }
             Files.deleteIfExists(filePath);
         } catch (IOException ex) {
             throw new RuntimeException("Could not delete file " + fileName, ex);
