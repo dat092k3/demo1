@@ -9,8 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.example.demo.document.BookDocument;
 import com.example.demo.document.ChapterDocument;
-import com.example.demo.entity.Book;
-import com.example.demo.entity.Chapter;
 import com.example.demo.repository.BookRepository;
 import com.example.demo.repository.BookSearchRepository;
 import com.example.demo.repository.ChapterRepository;

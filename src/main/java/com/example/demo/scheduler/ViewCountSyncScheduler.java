@@ -2,7 +2,6 @@ package com.example.demo.scheduler;
 
 import com.example.demo.messaging.ViewCountConsumer;
 import com.example.demo.repository.BookRepository;
-import com.example.demo.repository.ChapterRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +24,6 @@ public class ViewCountSyncScheduler {
     @Autowired
     private BookRepository bookRepository;
 
-    @Autowired
-    private ChapterRepository chapterRepository;
 
     @Scheduled(fixedRate = 300000) // 5 minutes
     public void syncViewCounts() {
