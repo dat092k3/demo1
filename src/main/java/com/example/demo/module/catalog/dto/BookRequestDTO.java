@@ -119,4 +119,12 @@ public class BookRequestDTO {
     public void setStatus(com.example.demo.module.catalog.enums.BookStatus status) {
         this.status = status;
     }
+
+    public String getAuthorName() {
+        return authorName;
+    }
+
+    public void setAuthorName(String authorName) {
+        this.authorName = authorName;
+    }
 }
